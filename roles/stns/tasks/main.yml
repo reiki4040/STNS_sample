@@ -1,0 +1,41 @@
+- name: apt | replace sources.list to jp mirror
+  tags:
+    - apt
+    - stns
+  copy: src=sources.list dest=/etc/apt/sources.list mode=644 owner=root group=root
+
+- name: install curl for STNS repo setup shell script
+  tags:
+    - stns
+  apt: name={{ item }} update_cache=yes
+  with_items:
+    - curl
+
+- name: add STNS repository get shell
+  tags:
+    - stns
+  get_url: url=https://repo.stns.jp/scripts/apt-repo.sh dest=/tmp/stns_apt-repo.sh
+
+- name: add STNS repository
+  tags:
+    - stns
+  shell: sh /tmp/stns_apt-repo.sh
+
+- name: install STNS and libs
+  tags:
+    - stns
+  apt: name={{ item }} update_cache=yes
+  with_items:
+    - stns
+
+- name: put stns.conf
+  tags:
+    - stns
+  template: src=stns.conf.j2 dest=/etc/stns/stns.conf
+  notify:
+    - reload stns
+
+- name: start STNS
+  tags:
+    - stns
+  service: name=stns state=started

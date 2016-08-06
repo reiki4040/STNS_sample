@@ -1,0 +1,6 @@
+- hosts: stns_client
+  user: vagrant
+  become: yes
+  become_user: root
+  roles:
+    - stns-client

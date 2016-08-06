@@ -1,0 +1,17 @@
+api_end_point = [
+{% for server in groups['stns_server'] %}
+  "http://{{ server }}:1104/v2",
+{% endfor %}
+]
+
+user = "test_user"
+password = "test_password"
+
+wrapper_path = "/usr/local/bin/stns-query-wrapper"
+
+chain_ssh_wrapper = "/usr/libexec/openssh/ssh-ldap-wrapper"
+
+ssl_verify = true
+
+request_timeout = 3
+

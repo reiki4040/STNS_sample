@@ -1,0 +1,7 @@
+deb http://security.debian.org/ jessie/updates main
+deb-src http://security.debian.org/ jessie/updates main
+
+# replace mirror for jp by ansible
+# http://www.debian.or.jp/using/mirror.html
+deb http://ftp.jp.debian.org/debian/ jessie main contrib non-free
+

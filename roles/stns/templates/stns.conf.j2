@@ -1,0 +1,14 @@
+port = 1104
+include = "/etc/stns/conf.d/*"
+
+user = "test_user"
+password = "test_password"
+
+[users.{{ ssh_user }}]
+id = 1001
+group_id = 1001
+keys = ["{{ public_key }}"]
+
+[groups.developer]
+id = 1001
+users = ["{{ ssh_user }}"]

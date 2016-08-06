@@ -1,0 +1,85 @@
+- name: apt | replace sources.list to jp mirror
+  tags:
+    - apt
+    - stns
+  copy: src=sources.list dest=/etc/apt/sources.list mode=644 owner=root group=root
+
+- name: install curl for STNS repo setup shell script
+  tags:
+    - stns
+  apt: name={{ item }} update_cache=yes
+  with_items:
+    - curl
+
+- name: add STNS repository get shell
+  tags:
+    - stns
+  get_url: url=https://repo.stns.jp/scripts/apt-repo.sh dest=/tmp/stns_apt-repo.sh
+
+- name: add STNS repository
+  tags:
+    - stns
+  shell: sh /tmp/stns_apt-repo.sh
+
+- name: install STNS libs
+  tags:
+    - stns
+  apt: name={{ item }} update_cache=yes
+  with_items:
+    - libnss-stns
+    - libpam-stns
+
+- name: put libssn_stns.conf
+  tags:
+    - stns
+  template: src=libnss_stns.conf.j2 dest=/etc/stns/libnss_stns.conf
+
+- name: replace passwd /etc/nsswitch.conf
+  tags:
+    - stns
+  lineinfile: dest=/etc/nsswitch.conf regexp="^passwd:\s+compat" line="passwd{{ colon }} compat stns"
+
+- name: replace group /etc/nsswitch.conf
+  tags:
+    - stns
+  lineinfile: dest=/etc/nsswitch.conf regexp="^group:\s+compat" line="group{{ colon }} compat stns"
+
+- name: replace shadow /etc/nsswitch.conf
+  tags:
+   - stns
+  lineinfile: dest=/etc/nsswitch.conf regexp="^shadow:\s+compat" line="shadow{{ colon }} compat stns"
+
+- name: symlink wrapper path (for permission 700 problem)
+  tags:
+    - stns
+  file: dest=/usr/local/bin/{{ item }} owner=root group=root mode=700
+  with_items:
+    - stns-key-wrapper
+
+- name: modified wrapper path (for permission 700 problem)
+  tags:
+    - stns
+  file: state=directory dest=/stns owner=root group=root mode=700
+
+- name: copy stns-key-wrapper (for permission 700 problem)
+  tags:
+    - stns
+  copy: remote_src=true src=/usr/local/bin/{{ item }} dest=/stns/{{ item }} owner=root group=root mode=755
+  with_items:
+    - stns-key-wrapper
+
+- name:  modified sshd config authorized key command
+  tags:
+    - stns
+  blockinfile:
+    dest: /etc/ssh/sshd_config
+    block: |
+      AuthorizedKeysCommand /stns/stns-key-wrapper
+      AuthorizedKeysCommandUser root
+  notify:
+    - restart ssh
+
+- name: replace password no
+  tags:
+   - stns
+  lineinfile: dest=/etc/ssh/sshd_config regexp="^#PasswordAuthentication.*$" line="PasswordAuthentication no"
