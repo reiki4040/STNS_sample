@@ -49,32 +49,13 @@
    - stns
   lineinfile: dest=/etc/nsswitch.conf regexp="^shadow:\s+compat" line="shadow{{ colon }} compat stns"
 
-- name: symlink wrapper path (for permission 700 problem)
-  tags:
-    - stns
-  file: dest=/usr/local/bin/{{ item }} owner=root group=root mode=700
-  with_items:
-    - stns-key-wrapper
-
-- name: modified wrapper path (for permission 700 problem)
-  tags:
-    - stns
-  file: state=directory dest=/stns owner=root group=root mode=700
-
-- name: copy stns-key-wrapper (for permission 700 problem)
-  tags:
-    - stns
-  copy: remote_src=true src=/usr/local/bin/{{ item }} dest=/stns/{{ item }} owner=root group=root mode=755
-  with_items:
-    - stns-key-wrapper
-
 - name:  modified sshd config authorized key command
   tags:
     - stns
   blockinfile:
     dest: /etc/ssh/sshd_config
     block: |
-      AuthorizedKeysCommand /stns/stns-key-wrapper
+      AuthorizedKeysCommand /usr/lib/stns/stns-key-wrapper
       AuthorizedKeysCommandUser root
   notify:
     - restart ssh
